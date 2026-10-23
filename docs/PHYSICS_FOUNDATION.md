@@ -1,43 +1,41 @@
-# Physics foundation and integration plan
+# Physics foundation and reference strategy
 
-## Selected upstream
+## Direction
 
-- Project: [PositionBasedDynamics](https://github.com/InteractiveComputerGraphics/PositionBasedDynamics)
-- Pinned revision: `10a70bc146a97873dc3c8fef372f5217e010542e`
-- License: MIT (retain its copyright and license notice for copied or redistributed portions).
-- Integration style: separate upstream dependency, with Shopl-specific code kept in Shopl-owned modules.
-- Upstream source is not vendored or copied into this repository.
+Shopl is building a Shopl-owned C++ physics core. PositionBasedDynamics (PBD) is a **reference implementation for studying algorithms and comparing behavior**, not a build or runtime dependency.
 
-## Why this is the starting point
-
-PositionBasedDynamics provides a C++ foundation for position-based and extended position-based dynamics, including deformable-body constraints and collision-related functionality. It is a useful base for learning and validating the desired behavior without claiming that it already implements Shopl's exact use case.
-
-The upstream CMake project has build-time requirements and optional demo/Python-binding paths. Shopl pins a specific revision and validates the library build in CI rather than assuming the complete upstream demo suite is suitable for Shopl.
+We will not fetch, compile, link, or expose upstream PBD types in Shopl's public API. Useful techniques may inform independently implemented modules. When code is copied or redistributed, its license and copyright obligations must be reviewed and retained; the preferred path is to implement algorithms independently and document relevant references.
 
 ## Current Shopl modules
 
 - `shopl_core`: solver-independent vector, particle state, simulation bookkeeping, and baseline gravity integration.
-- `shopl_pbd_adapter`: currently maps Shopl vectors and particle operations to an upstream `PBD::SimulationModel`, and can add distance constraints. It does **not** step the upstream solver yet.
 - `shopl_tests`: deterministic headless tests and regression fixtures.
 
-## Planned modules
+## Planned Shopl-owned modules
 
-- `shopl_softbody`: Shopl-owned setup and behavior for deformable volumes, constraints, and later pressure-driven effects.
+- `shopl_constraints`: distance and other local constraints with bounded, validated parameters.
+- `shopl_collision`: broad-phase acceleration structures and mesh-aware narrow-phase queries; avoid unbounded brute-force pair checks.
+- `shopl_softbody`: deformable volume setup, constraint networks, volume preservation, and pressure-driven effects.
+- `shopl_stepper`: fixed-step simulation orchestration, damping, stability limits, and deterministic stepping.
 - `shopl_viewer` (later): visual inspection and interactive parameters.
-- `tools/python` (later): repeatable scenarios and parameter analysis.
-- `shaders/` (later): HLSL/GLSL visualization shaders.
+- `tools/python` (later): repeatable scenarios, parameter sweeps, and analysis tools.
 
-Avoid exposing upstream implementation details throughout the project. Keep the adapter narrow so a future solver replacement does not require rewriting every higher-level system.
+Keep modules small and replaceable. Public APIs should use Shopl-owned types rather than upstream implementation details.
 
 ## Validation gates
 
-1. Build a minimal C++ target in GitHub Actions.
-2. Confirm the selected upstream revision and its required dependencies build in library-only mode.
-3. Validate the Shopl-to-PBD particle/constraint adapter with headless tests.
-4. Add a real PBD stepping bridge and deterministic deformable-volume fixture.
-5. Test volume drift, finite positions, collision response, and repeatability across runs.
-6. Only then add pressure-driven volume behavior and shape-aware local contact/penetration behavior.
+1. Keep the standalone core building and its regression tests passing in CI.
+2. Implement a Shopl-owned distance-constraint primitive with tests for rest length, stiffness bounds, invalid indices, and degenerate cases.
+3. Add a fixed-step solver loop and deterministic multi-step tests.
+4. Add spatial acceleration and mesh collision tests before large-scale collision work.
+5. Build a deformable-volume fixture and measure volume drift, finite positions, and repeatability.
+6. Add pressure-driven volume behavior only after the baseline is stable.
+7. Add shape-aware local contact response and keep contact, indentation, and actual penetration/topology as separate concerns.
 
-## Future custom physics
+## Reference-based development
 
-A Shopl-owned solver is a possible later milestone, not a current requirement. Any replacement should be justified by measured limitations and validated against the same regression fixtures. Until then, keep the upstream engine identifiable as a dependency and preserve its license requirements.
+Use PBD and other reputable sources to understand algorithms, compare expected properties, and design tests. Do not treat an upstream implementation as a drop-in solution or copy code without reviewing license obligations. Each adopted technique must earn its place through tests and measurable benefits for Shopl's target behaviors.
+
+## Scope
+
+The current scaffold is not a complete soft-body solver. Internal-pressure bulging and shape-aware contact remain planned behaviors, documented in `BULGE_BEHAVIOR.md`.
