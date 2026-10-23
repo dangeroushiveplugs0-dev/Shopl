@@ -131,5 +131,70 @@ int main() {
         CHECK(std::abs((particles[0].position.x / (4.0 - particles[1].position.x)) - 1.0 / 3.0) < 1e-12);
     }
 
+
+    // Longer chain stress test: the solver must converge across multiple
+    // connected constraints, not just a two-link example.
+    {
+        constexpr std::size_t particle_count = 12;
+        std::vector<ParticleState> particles(particle_count);
+        std::vector<DistanceConstraint> chain;
+        chain.reserve(particle_count - 1);
+        for (std::size_t i = 0; i < particle_count; ++i) {
+            particles[i].position = {1.5 * static_cast<double>(i), 0.0, 0.0};
+            if (i + 1 < particle_count) {
+                chain.push_back({i, i + 1, 1.0, 1.0});
+            }
+        }
+        CHECK(DistanceConstraintSolver::solve(particles, chain, 128));
+        double maximum_error = 0.0;
+        for (const auto& particle : particles) {
+            CHECK(particle.position.is_finite());
+        }
+        for (const auto& constraint : chain) {
+            const auto delta = particles[constraint.particle_b].position -
+                               particles[constraint.particle_a].position;
+            const double distance = std::sqrt(delta.x * delta.x +
+                                               delta.y * delta.y +
+                                               delta.z * delta.z);
+            maximum_error = std::max(maximum_error,
+                                     std::abs(distance - constraint.rest_length));
+        }
+        CHECK(maximum_error < 1e-6);
+    }
+
+    // Extreme but finite inverse-mass ratios should remain stable and place
+    // almost all correction on the much lighter particle (higher inverse mass).
+    {
+        std::vector<ParticleState> particles(2);
+        particles[1].position = {4.0, 0.0, 0.0};
+        particles[0].inverse_mass = 1e-12;
+        particles[1].inverse_mass = 1e12;
+        const std::vector<DistanceConstraint> constraint{{0, 1, 2.0, 1.0}};
+        CHECK(DistanceConstraintSolver::solve(particles, constraint, 1));
+        CHECK(particles[0].position.is_finite());
+        CHECK(particles[1].position.is_finite());
+        CHECK(std::abs(particles[0].position.x) < 1e-9);
+        CHECK(std::abs(particles[1].position.x - 2.0) < 1e-9);
+        CHECK(std::abs((particles[1].position - particles[0].position).x - 2.0) < 1e-9);
+    }
+
+    // If both particles are pinned, a valid constraint is a stable no-op.
+    {
+        std::vector<ParticleState> particles(2);
+        particles[0].position = {1.0, 2.0, 3.0};
+        particles[1].position = {8.0, 2.0, 3.0};
+        particles[0].inverse_mass = 0.0;
+        particles[1].inverse_mass = 0.0;
+        const auto before = particles;
+        const std::vector<DistanceConstraint> constraint{{0, 1, 2.0, 1.0}};
+        CHECK(DistanceConstraintSolver::solve(particles, constraint, 8));
+        CHECK(particles[0].position.x == before[0].position.x);
+        CHECK(particles[0].position.y == before[0].position.y);
+        CHECK(particles[0].position.z == before[0].position.z);
+        CHECK(particles[1].position.x == before[1].position.x);
+        CHECK(particles[1].position.y == before[1].position.y);
+        CHECK(particles[1].position.z == before[1].position.z);
+    }
+
     return 0;
 }
