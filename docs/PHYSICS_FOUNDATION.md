@@ -8,29 +8,33 @@ We will not fetch, compile, link, or expose upstream PBD types in Shopl's public
 
 ## Current Shopl modules
 
-- `shopl_core`: vector, particle state (including inverse mass for pinned particles), simulation bookkeeping, and gravity integration.
+- `shopl_core`: vector, particle state (including inverse mass for pinned particles), simulation bookkeeping, and semi-implicit Euler gravity integration.
 - `shopl_constraints`: distance constraints plus a deterministic ordered batch solver. Batch solving uses a working copy so invalid constraints do not partially mutate caller state.
-- Headless tests cover regression cases, invalid inputs, and repeatability.
+- `shopl_stepper`: fixed-duration multi-step orchestration; gravity is integrated before constraints, and the full requested batch commits only on success.
+- Headless tests cover regression cases, discrete constant-acceleration behavior, invalid inputs, and same-build repeatability.
 
 ## Planned modules
 
-- `shopl_stepper`: fixed-step orchestration, damping, stability limits, and deterministic stepping.
 - `shopl_collision`: spatial acceleration structures and mesh-aware narrow-phase queries; avoid unbounded brute-force pair checks.
 - `shopl_softbody`: deformable volume, constraint networks, volume preservation, and pressure-driven effects.
 - `shopl_viewer` (later): visual inspection and interactive parameters.
 - `tools/python` (later): repeatable scenarios, parameter sweeps, and analysis tools.
-
-Keep modules small and replaceable. Public APIs use Shopl-owned types.
+- Android APK test harness and a GitHub Pages-based visual report/scenario viewer (later), built through GitHub Actions once the headless API and test scenarios are stable.
 
 ## Validation gates
+
+A green CI run means only that the configured build and automated tests passed. It does not establish physical realism.
 
 1. Keep standalone core and regression tests green.
 2. Validate distance constraints: rest length, stiffness bounds, pinned particles, invalid indices/parameters, and degenerate pairs.
 3. Validate multi-constraint convergence, deterministic ordering, iteration limits, and no partial mutation on failure.
-4. Add fixed-step orchestration and deterministic multi-step tests.
-5. Add spatial acceleration and mesh collision tests before large-scale collision work.
-6. Measure deformable-volume drift, finite positions, and repeatability.
-7. Add pressure-driven volume behavior only after the baseline is stable.
-8. Keep contact, indentation, and actual penetration/topology as separate concerns.
+4. Validate fixed-step orchestration against known discrete results for the selected integrator, and check repeatability and failure atomicity.
+5. Add numerical-stability sweeps across time steps, masses, stiffnesses, constraint counts, and long runs; record error and finite-state failures rather than merely pass/fail.
+6. Compare measured behavior with analytical or well-established reference cases, including free fall, pendulum/oscillator cases when implemented, energy or momentum behavior where applicable, and documented tolerance bands.
+7. Use a visual harness and Android APKs for physical/interactive inspection; keep visual inspection as complementary evidence, not a replacement for numerical tests.
+8. Add spatial acceleration and mesh collision tests before large-scale collision work.
+9. Measure deformable-volume drift, finite positions, and repeatability.
+10. Add pressure-driven volume behavior only after the baseline is stable.
+11. Keep contact, indentation, and actual penetration/topology as separate concerns.
 
-PBD and other reputable sources are references for algorithms and expected properties, not drop-in dependencies. Every technique must earn its place through tests and measurable benefits. Internal-pressure bulging and shape-aware contact remain planned behaviors documented in `BULGE_BEHAVIOR.md`.
+Every technique must earn its place through tests and measurable benefits. PBD and other reputable sources are references for algorithms and expected properties, not drop-in dependencies. Internal-pressure bulging and shape-aware contact remain planned behaviors documented in `BULGE_BEHAVIOR.md`.
