@@ -1,38 +1,36 @@
 # Shopl
 
-Shopl is a long-term soft-body physics project, beginning with controllable, physically grounded soft-tissue deformation such as stomach bulging. It is intended to grow beyond a one-off demo.
+Shopl is a long-term soft-body physics project, beginning with controllable, physically grounded soft-tissue deformation such as pressure-driven bulging and shape-aware local contact. It is intended to grow beyond a one-off demo.
 
-## Current foundation
+## Physics strategy
 
-Shopl uses [PositionBasedDynamics](https://github.com/InteractiveComputerGraphics/PositionBasedDynamics) as its initial physics foundation. We will integrate it as a separate upstream dependency rather than copying its implementation into Shopl. Its MIT license and copyright notice must be preserved wherever required.
-
-The long-term possibility of building a Shopl-owned physics core remains open. That is a future decision informed by testing, profiling, and what we learn from the existing solver—not a reason to duplicate the engine prematurely.
+Shopl is building a **Shopl-owned C++ physics core**. Established projects such as [PositionBasedDynamics](https://github.com/InteractiveComputerGraphics/PositionBasedDynamics) are references for studying algorithms and validating behavior, not runtime or build dependencies. The core should build independently and expose Shopl-owned types.
 
 ## Language responsibilities
 
-- **C++** — physics integration, simulation data, deformation, and performance-sensitive core code.
-- **C#** — project-facing controls and tooling where a C# layer is useful.
+- **C++** — simulation state, constraints, collision, deformation, and performance-sensitive core code.
 - **Python** — repeatable test scenarios, parameter sweeps, and analysis tools.
 - **HLSL / GLSL** — rendering and visualization shaders.
-
-These are intended roles, not a requirement to force every language into every build target.
+- Additional tooling languages are optional and should only be introduced when they provide a concrete benefit.
 
 ## Development principles
 
-- Keep the physics core modular and avoid brute-force designs that will become expensive as the project grows.
-- Start with a reproducible, testable simulation before adding a polished viewer.
-- Distinguish the simulation volume from its render surface; visual smoothness must not hide unstable or invalid physics.
+- Keep the physics core modular and avoid brute-force designs that become expensive as the project grows.
+- Start with reproducible, testable simulation behavior before adding a polished viewer.
+- Distinguish simulation volumes from rendered surfaces when needed.
 - Test volume behavior, collision response, stability, and performance independently.
-- Track upstream dependency versions and licenses explicitly.
+- Use external projects as references without inheriting unnecessary build complexity.
+- Do not claim anatomical realism from a visually plausible mesh alone.
 
 ## Initial milestones
 
-1. Record the upstream dependency and integration approach.
-2. Build a minimal C++ integration target in GitHub Actions.
-3. Create a deterministic soft-body test fixture and baseline measurements.
-4. Add controlled pressure/volume behavior and collision tests.
-5. Add a visualization layer after the solver tests are repeatable.
+1. Establish a standalone C++ core and passing CI tests.
+2. Add a Shopl-owned distance-constraint primitive and regression tests.
+3. Implement fixed-step solver orchestration.
+4. Add accelerated mesh collision queries and deformable-volume fixtures.
+5. Add controlled pressure/volume behavior and shape-aware contact tests.
+6. Add visualization after the solver tests are repeatable.
 
 ## Status
 
-Planning and dependency-integration stage. A complete stomach-bulging solver or visual demo is **not** claimed to exist yet.
+Early core-development stage. Gravity integration and basic simulation bookkeeping exist; a complete soft-body solver, mesh collision system, pressure-driven bulging, and visual demo are **not** yet implemented.
