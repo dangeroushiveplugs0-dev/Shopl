@@ -43,7 +43,7 @@ if(BUILD_TESTING)
 
     add_executable(shopl_constraint_tests tests/test_distance_constraint.cpp)
     target_link_libraries(shopl_constraint_tests PRIVATE shopl_constraints)
-    target_compile_features(shopl_constraint_tests PRIVATE cxx_std_17)
+    target_compile_features(shopl_constraint_tests PUBLIC cxx_std_17)
     add_test(NAME shopl_constraint_tests COMMAND shopl_constraint_tests)
 
     add_executable(shopl_constraint_solver_tests tests/test_distance_constraint_solver.cpp)
@@ -55,4 +55,9 @@ if(BUILD_TESTING)
     target_link_libraries(shopl_stepper_tests PRIVATE shopl_stepper)
     target_compile_features(shopl_stepper_tests PRIVATE cxx_std_17)
     add_test(NAME shopl_stepper_tests COMMAND shopl_stepper_tests)
+
+    add_executable(shopl_numerical_validation_tests tests/test_numerical_validation.cpp)
+    target_link_libraries(shopl_numerical_validation_tests PRIVATE shopl_stepper)
+    target_compile_features(shopl_numerical_validation_tests PRIVATE cxx_std_17)
+    add_test(NAME shopl_numerical_validation_tests COMMAND shopl_numerical_validation_tests)
 endif()

@@ -3,6 +3,7 @@
 #include <cmath>
 #include <limits>
 #include <utility>
+#include <vector>
 
 #include "shopl/constraints/DistanceConstraintSolver.h"
 #include "shopl/core/GravityIntegrator.h"
@@ -32,21 +33,23 @@ bool FixedStepStepper::advance_steps(
 
     std::vector<core::ParticleState> working_particles = particles;
     core::SimulationState working_simulation = simulation;
+    std::vector<core::Vec3> previous_positions;
+    previous_positions.reserve(working_particles.size());
 
     for (std::size_t step = 0; step < step_count; ++step) {
+        previous_positions.clear();
         for (core::ParticleState& particle : working_particles) {
             if (!particle.position.is_finite() || !particle.velocity.is_finite() ||
                 !std::isfinite(particle.inverse_mass) ||
                 particle.inverse_mass < 0.0) {
                 return false;
             }
+            previous_positions.push_back(particle.position);
 
-            // A zero inverse mass marks a pinned particle. Leave both its
-            // position and velocity unchanged during gravity integration.
+            // A zero inverse mass marks a fixed/pinned particle.
             if (particle.inverse_mass == 0.0) {
                 continue;
             }
-
             if (!core::GravityIntegrator::step(
                     particle, acceleration, fixed_delta_seconds)) {
                 return false;
@@ -54,8 +57,31 @@ bool FixedStepStepper::advance_steps(
         }
 
         if (!constraints::DistanceConstraintSolver::solve(
-                working_particles, constraints, constraint_iterations) ||
-            !working_simulation.record_step(fixed_delta_seconds)) {
+                working_particles, constraints, constraint_iterations)) {
+            return false;
+        }
+
+        // Constraint projection changes positions. Reconstruct dynamic
+        // velocities from the final displacement so they remain consistent
+        // with the corrected positions instead of retaining stale momentum.
+        const double inverse_delta = 1.0 / fixed_delta_seconds;
+        if (!std::isfinite(inverse_delta)) {
+            return false;
+        }
+        for (std::size_t i = 0; i < working_particles.size(); ++i) {
+            auto& particle = working_particles[i];
+            if (particle.inverse_mass == 0.0) {
+                continue;
+            }
+            const core::Vec3 corrected_velocity =
+                (particle.position - previous_positions[i]) * inverse_delta;
+            if (!corrected_velocity.is_finite()) {
+                return false;
+            }
+            particle.velocity = corrected_velocity;
+        }
+
+        if (!working_simulation.record_step(fixed_delta_seconds)) {
             return false;
         }
     }
