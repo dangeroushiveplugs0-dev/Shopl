@@ -29,7 +29,7 @@ jobs:
 
       - name: Build Shopl tests and upstream solver
         run: |
-          cmake --build build --target shopl_core_tests shopl_gravity_tests PositionBasedDynamics --parallel 2
+          cmake --build build --target shopl_core_tests shopl_gravity_tests shopl_pbd_adapter_tests PositionBasedDynamics --parallel 2
 
       - name: Run tests
         run: ctest --test-dir build --output-on-failure
