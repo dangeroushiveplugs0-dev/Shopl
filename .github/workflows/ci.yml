@@ -1,0 +1,35 @@
+name: Shopl CI
+
+on:
+  push:
+    branches: [MAIN-HOOK]
+  pull_request:
+    branches: [MAIN-HOOK]
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout Shopl
+        uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes cmake ninja-build g++ libeigen3-dev
+
+      - name: Configure
+        run: >
+          cmake -S . -B build -G Ninja
+          -DCMAKE_BUILD_TYPE=Release
+          -DCMAKE_PREFIX_PATH=/usr
+          -DSHOPL_BUILD_POSITION_BASED_DYNAMICS=ON
+          -DBUILD_TESTING=ON
+
+      - name: Build Shopl core and upstream solver
+        run: |
+          cmake --build build --target shopl_core_tests PositionBasedDynamics --parallel 2
+
+      - name: Run tests
+        run: ctest --test-dir build --output-on-failure
