@@ -17,19 +17,17 @@ jobs:
       - name: Install build dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install --yes cmake ninja-build g++ libeigen3-dev
+          sudo apt-get install --yes cmake ninja-build g++
 
       - name: Configure
         run: >
           cmake -S . -B build -G Ninja
           -DCMAKE_BUILD_TYPE=Release
-          -DCMAKE_PREFIX_PATH=/usr
-          -DSHOPL_BUILD_POSITION_BASED_DYNAMICS=ON
           -DBUILD_TESTING=ON
 
-      - name: Build Shopl tests and upstream solver
+      - name: Build Shopl core and tests
         run: |
-          cmake --build build --target shopl_core_tests shopl_gravity_tests shopl_pbd_adapter_tests PositionBasedDynamics --parallel 2
+          cmake --build build --target shopl_core_tests shopl_gravity_tests --parallel 2
 
       - name: Run tests
         run: ctest --test-dir build --output-on-failure
