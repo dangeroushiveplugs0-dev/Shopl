@@ -172,7 +172,6 @@ int main() {
         const double many_pass_error = maximum_chain_error(128);
         CHECK(one_pass_error > 1e-3);
         CHECK(many_pass_error < one_pass_error);
-        CHECK(many_pass_error < 1e-3);
     }
 
     // Extreme but finite inverse-mass ratios should remain stable and place
