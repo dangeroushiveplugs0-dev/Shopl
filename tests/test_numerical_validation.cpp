@@ -99,5 +99,37 @@ int main() {
         CHECK(thirty_two_iteration_error < 1e-6);
     }
 
+
+    // Parameter sweep: one projection should remove more distance error as
+    // stiffness increases, and inverse mass should control correction sharing.
+    {
+        double previous_error = 2.0;
+        for (const double stiffness : {0.25, 0.5, 0.75, 1.0}) {
+            std::vector<ParticleState> particles(2);
+            particles[1].position = {4.0, 0.0, 0.0};
+            const std::vector<DistanceConstraint> constraint{{0, 1, 2.0, stiffness}};
+            CHECK(DistanceConstraintSolver::solve(particles, constraint, 1));
+            const double distance = std::abs(
+                particles[1].position.x - particles[0].position.x);
+            const double error = std::abs(distance - 2.0);
+            CHECK(error <= previous_error);
+            CHECK(particles[0].position.is_finite());
+            CHECK(particles[1].position.is_finite());
+            previous_error = error;
+        }
+        CHECK(previous_error < 1e-12);
+    }
+    {
+        std::vector<ParticleState> particles(2);
+        particles[1].position = {4.0, 0.0, 0.0};
+        particles[0].inverse_mass = 1.0;
+        particles[1].inverse_mass = 3.0;
+        const std::vector<DistanceConstraint> constraint{{0, 1, 2.0, 1.0}};
+        CHECK(DistanceConstraintSolver::solve(particles, constraint, 1));
+        CHECK(std::abs(particles[0].position.x - 0.5) < 1e-12);
+        CHECK(std::abs(particles[1].position.x - 2.5) < 1e-12);
+        CHECK(std::abs((particles[0].position.x / (4.0 - particles[1].position.x)) - 1.0 / 3.0) < 1e-12);
+    }
+
     return 0;
 }
