@@ -57,6 +57,9 @@ if(SHOPL_BUILD_POSITION_BASED_DYNAMICS)
     target_include_directories(shopl_pbd_adapter
         PUBLIC
             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+            # The upstream Simulation target omits the repository root from
+            # its public includes, but its headers are included as Simulation/...
+            $<BUILD_INTERFACE:${positionbaseddynamics_SOURCE_DIR}>
     )
     target_compile_features(shopl_pbd_adapter PUBLIC cxx_std_17)
     target_link_libraries(shopl_pbd_adapter PUBLIC shopl_core Simulation)
