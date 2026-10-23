@@ -10,10 +10,29 @@
 *{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at top,#1d2b39,var(--bg) 65%);color:var(--text);font:16px/1.5 system-ui,-apple-system,Segoe UI,sans-serif}
 main{max-width:1000px;margin:auto;padding:22px 16px 48px}header{display:flex;gap:14px;align-items:center;justify-content:space-between;flex-wrap:wrap}h1{font-size:clamp(1.7rem,5vw,2.5rem);margin:0;letter-spacing:-.04em}h2{font-size:1.08rem;margin:0 0 10px}.eyebrow{color:var(--accent);text-transform:uppercase;letter-spacing:.13em;font-size:.75rem;font-weight:750}.sub{color:var(--muted);max-width:680px}.status{border:1px solid #6b5b36;color:var(--warn);padding:7px 10px;border-radius:999px;font-size:.78rem;font-weight:700}
 .grid{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(245px,1fr);gap:14px;margin-top:20px}.panel{background:color-mix(in srgb,var(--panel) 92%,transparent);border:1px solid var(--line);border-radius:16px;padding:16px;min-width:0}.stage{padding:0;overflow:hidden}.stage-head{padding:14px 16px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:8px}.stage-head small,.muted{color:var(--muted)}canvas{display:block;width:100%;height:auto;aspect-ratio:1.35;background:#101821;touch-action:pan-y}.controls{display:grid;gap:10px}.buttons{display:grid;grid-template-columns:1fr 1fr;gap:8px}button{font:inherit;color:var(--text);background:#263545;border:1px solid #43576d;border-radius:10px;padding:11px 12px;min-height:44px;cursor:pointer}button[aria-pressed=true],button.primary{background:#214b48;border-color:var(--accent)}button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}label{display:flex;justify-content:space-between;gap:12px;color:var(--muted);font-size:.9rem}input[type=range]{width:100%;accent-color:var(--accent)}.metrics{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}.metric{padding:10px;border:1px solid var(--line);border-radius:10px}.metric span{display:block;color:var(--muted);font-size:.78rem}.metric strong{font-size:1.05rem;font-variant-numeric:tabular-nums}.note{font-size:.9rem;color:var(--muted);margin-top:14px}.note strong{color:var(--text)}footer{margin-top:18px;color:var(--muted);font-size:.84rem}a{color:var(--accent)}@media(max-width:720px){.grid{grid-template-columns:1fr}main{padding:18px 12px 36px}.panel{padding:13px}.stage{padding:0}}
+
+/* Interactive 3D broad-phase preview */
+.viewer3d{margin-top:18px;padding:0;overflow:hidden}.viewer3d-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding:14px 16px;border-bottom:1px solid var(--line)}.viewer3d-layout{display:grid;grid-template-columns:minmax(0,1fr) 235px;gap:0}.viewer3d-stage{min-width:0;background:#101821}.viewer3d-canvas{display:block;width:100%;height:auto;aspect-ratio:1.45;touch-action:none;cursor:grab}.viewer3d-canvas:active{cursor:grabbing}.viewer3d-controls{border-left:1px solid var(--line);padding:14px;display:grid;align-content:start;gap:12px}.viewer3d-controls label{display:flex;justify-content:space-between;gap:8px}.viewer3d-controls input{width:100%;accent-color:var(--accent)}.pill3d{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:4px 9px;font-size:.78rem;color:var(--muted)}.pill3d.overlap{border-color:var(--warn);color:var(--warn)}.viewer3d-help{padding:0 16px 14px;color:var(--muted);font-size:.85rem}.viewer3d-controls button{width:100%}@media(max-width:720px){.viewer3d-layout{grid-template-columns:1fr}.viewer3d-controls{border-left:0;border-top:1px solid var(--line);grid-template-columns:1fr 1fr}.viewer3d-controls .wide{grid-column:1/-1}.viewer3d-canvas{aspect-ratio:1/1}}
+
 </style>
 </head>
 <body><main>
 <header><div><div class="eyebrow">Shopl · Development preview</div><h1>Physics Lab</h1><p class="sub">A small interactive browser sandbox for exploring basic gravity and distance-constraint behavior.</p></div><div class="status">Prototype · not core-connected</div></header>
+
+<section class="panel viewer3d" aria-label="Interactive 3D collision preview">
+  <div class="viewer3d-head"><div><div class="eyebrow">3D · Broad-phase foundation</div><h2 style="margin:3px 0 0">3D Collision Bounds</h2></div><span id="overlapBadge" class="pill3d">Bounds separate</span></div>
+  <div class="viewer3d-layout">
+    <div class="viewer3d-stage"><canvas id="scene3d" class="viewer3d-canvas" width="900" height="620" aria-label="Perspective 3D scene with ground grid, XYZ axes and two wireframe collision boxes. Drag to orbit; use the controls to move the second box."></canvas></div>
+    <div class="viewer3d-controls">
+      <div class="wide"><label for="boxOffset">Box B position X <strong id="boxOffsetValue">2.4</strong></label><input id="boxOffset" type="range" min="-1" max="4" value="2.4" step=".05"></div>
+      <div class="wide"><label for="zoom3d">Camera zoom <strong id="zoom3dValue">1.0×</strong></label><input id="zoom3d" type="range" min=".65" max="1.8" value="1" step=".05"></div>
+      <button id="reset3d" class="wide">Reset 3D view</button>
+      <p class="note wide" style="margin:0"><strong>Box A:</strong> fixed reference bounds.<br><strong>Box B:</strong> move it along X to test overlap.</p>
+    </div>
+  </div>
+  <div class="viewer3d-help">Drag the viewport to orbit the camera. This is a perspective 3D visualization of AABBs and overlap logic; it is not yet connected to the C++ engine or a triangle-mesh BVH.</div>
+</section>
+
 <div class="grid">
 <section class="panel stage" aria-label="Simulation view"><div class="stage-head"><strong id="sceneTitle">Free fall</strong><small id="runState">Paused</small></div><canvas id="scene" width="800" height="590" aria-label="Interactive 2D physics visualization"></canvas></section>
 <aside class="panel"><h2>Experiment</h2><div class="controls">
@@ -49,4 +68,42 @@ else{ctx.strokeStyle='#80d8c2';ctx.lineWidth=4;ctx.beginPath();particles.forEach
 function frame(now){if(!last)last=now;const delta=Math.min((now-last)/1000,.05);last=now;if(running){acc+=delta;const dt=stepSize();let n=0;while(acc>=dt&&n<12){update(dt);acc-=dt;n++}draw();metrics()}requestAnimationFrame(frame)}
 $('play').addEventListener('click',()=>{running=!running;last=0;metrics()});$('reset').addEventListener('click',()=>{running=false;reset();metrics()});document.querySelectorAll('.sceneBtn').forEach(b=>b.addEventListener('click',()=>{running=false;setScene(b.dataset.scene);metrics()}));$('gravity').addEventListener('input',()=>{$('gravityValue').textContent=(+$('gravity').value).toFixed(2)+' m/s²'});$('dt').addEventListener('input',()=>{$('dtValue').textContent='1/'+[30,60,120,240][+$('dt').value-1]+' s'});$('iterations').addEventListener('input',()=>{$('iterValue').textContent=$('iterations').value});reset();requestAnimationFrame(frame);
 })();
-</script></body></html>
+</script>
+<script>
+(()=> {
+ const canvas=document.getElementById('scene3d');
+ if(!canvas) return;
+ const ctx=canvas.getContext('2d');
+ const offset=document.getElementById('boxOffset');
+ const zoom=document.getElementById('zoom3d');
+ const badge=document.getElementById('overlapBadge');
+ const offsetValue=document.getElementById('boxOffsetValue');
+ const zoomValue=document.getElementById('zoom3dValue');
+ let yaw=-0.72,pitch=0.48,drag=null;
+ const A={min:[-1,-1,-1],max:[1,1,1]};
+ const B={min:[-1,-1,-1],max:[1,1,1]};
+ const edges=[[0,1],[0,2],[0,4],[1,3],[1,5],[2,3],[2,6],[3,7],[4,5],[4,6],[5,7],[6,7]];
+ function updateBounds(){const x=Number(offset.value);B.min=[x-0.8,-0.65,-0.65];B.max=[x+0.8,0.65,0.65];offsetValue.textContent=x.toFixed(2);zoomValue.textContent=Number(zoom.value).toFixed(2)+'×';const hit=A.min.every((v,i)=>v<=B.max[i])&&A.max.every((v,i)=>v>=B.min[i]);badge.textContent=hit?'AABBs overlap':'Bounds separate';badge.classList.toggle('overlap',hit);draw();}
+ function corners(b){const p=[];for(let i=0;i<8;i++)p.push([i&1?b.max[0]:b.min[0],i&2?b.max[1]:b.min[1],i&4?b.max[2]:b.min[2]]);return p;}
+ function project(p,w,h){const cy=Math.cos(yaw),sy=Math.sin(yaw),cp=Math.cos(pitch),sp=Math.sin(pitch);const x=p[0]*cy-p[2]*sy,z=p[0]*sy+p[2]*cy;const y=p[1]*cp-z*sp,depth=p[1]*sp+z*cp+9;const scale=Math.min(w,h)*0.72*Number(zoom.value)/Math.max(1,depth);return [w*.5+x*scale,h*.52-y*scale,depth];}
+ function line(a,b,color,width,dash){ctx.beginPath();ctx.moveTo(a[0],a[1]);ctx.lineTo(b[0],b[1]);ctx.strokeStyle=color;ctx.lineWidth=width;ctx.setLineDash(dash||[]);ctx.stroke();ctx.setLineDash([]);}
+ function drawBox(b,color){const pts=corners(b).map(p=>project(p,canvas.width,canvas.height));ctx.lineWidth=2.4;for(const [i,j] of edges){if(pts[i][2]<1||pts[j][2]<1)continue;line(pts[i],pts[j],color,2.4);} }
+ function draw(){const w=canvas.width,h=canvas.height;ctx.clearRect(0,0,w,h);const bg=ctx.createLinearGradient(0,0,0,h);bg.addColorStop(0,'#111c28');bg.addColorStop(1,'#0d141c');ctx.fillStyle=bg;ctx.fillRect(0,0,w,h);
+  for(let i=-8;i<=8;i++){line(project([-8,-1.05,i],w,h),project([8,-1.05,i],w,h),'#253646',1);line(project([i,-1.05,-8],w,h),project([i,-1.05,8],w,h),'#253646',1);}
+  line(project([-3.8,0,0],w,h),project([4.4,0,0],w,h),'#e17a78',2.6);line(project([0,-2,0],w,h),project([0,2.5,0],w,h),'#80d8c2',2.6);line(project([0,0,-3.8],w,h),project([0,0,4.2],w,h),'#79a9f7',2.6);
+  const axes=[['X',[2.6,0,0],'#e17a78'],['Y',[0,2.5,0],'#80d8c2'],['Z',[0,0,2.7],'#79a9f7']];ctx.font='bold 17px system-ui';for(const [name,p,c] of axes){const q=project(p,w,h);ctx.fillStyle=c;ctx.fillText(name,q[0]+5,q[1]-5);}
+  drawBox(A,'#f2c879');drawBox(B,'#80d8c2');
+  ctx.fillStyle='#edf3fa';ctx.font='16px system-ui';ctx.fillText('A',project([0,1.18,0],w,h)[0]-5,project([0,1.18,0],w,h)[1]);ctx.fillText('B',project([Number(offset.value),.82,0],w,h)[0]-5,project([Number(offset.value),.82,0],w,h)[1]);
+  ctx.fillStyle='#a7b5c6';ctx.font='13px system-ui';ctx.fillText('Perspective view · drag to orbit',18,26);
+ }
+ canvas.addEventListener('pointerdown',e=>{drag={x:e.clientX,y:e.clientY};canvas.setPointerCapture(e.pointerId);});
+ canvas.addEventListener('pointermove',e=>{if(!drag)return;const dx=e.clientX-drag.x,dy=e.clientY-drag.y;drag={x:e.clientX,y:e.clientY};yaw+=dx*.009;pitch=Math.max(-1.05,Math.min(1.05,pitch+dy*.008));draw();});
+ const stop=()=>{drag=null;};canvas.addEventListener('pointerup',stop);canvas.addEventListener('pointercancel',stop);
+ canvas.addEventListener('wheel',e=>{e.preventDefault();zoom.value=String(Math.max(.65,Math.min(1.8,Number(zoom.value)*(e.deltaY>0?.94:1.06))));updateBounds();},{passive:false});
+ offset.addEventListener('input',updateBounds);zoom.addEventListener('input',updateBounds);
+ document.getElementById('reset3d').addEventListener('click',()=>{yaw=-.72;pitch=.48;offset.value='2.4';zoom.value='1';updateBounds();});
+ updateBounds();
+})();
+</script>
+
+</body></html>
