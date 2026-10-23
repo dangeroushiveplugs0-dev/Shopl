@@ -25,13 +25,28 @@ if(SHOPL_BUILD_POSITION_BASED_DYNAMICS)
     # Pin upstream to a known commit so builds do not silently change as upstream moves.
     set(PBD_LIBS_ONLY ON CACHE BOOL "Build only PositionBasedDynamics libraries" FORCE)
     set(USE_PYTHON_BINDINGS OFF CACHE BOOL "Do not build optional Python bindings in the initial CI target" FORCE)
+
     FetchContent_Declare(
         PositionBasedDynamics
         GIT_REPOSITORY https://github.com/InteractiveComputerGraphics/PositionBasedDynamics.git
         GIT_TAG 10a70bc146a97873dc3c8fef372f5217e010542e
         GIT_SHALLOW FALSE
     )
-    FetchContent_MakeAvailable(PositionBasedDynamics)
+
+    # Upstream's top-level CMakeLists adds ${CMAKE_SOURCE_DIR}/CMake to the
+    # module path. When embedded via FetchContent, CMAKE_SOURCE_DIR points at
+    # Shopl instead of the dependency, so Utils cannot find
+    # GetGitRevisionDescription.cmake. Populate first and add the upstream
+    # project only after explicitly adding its own CMake module directory.
+    FetchContent_GetProperties(PositionBasedDynamics)
+    if(NOT positionbaseddynamics_POPULATED)
+        FetchContent_Populate(PositionBasedDynamics)
+    endif()
+    list(APPEND CMAKE_MODULE_PATH "${positionbaseddynamics_SOURCE_DIR}/CMake")
+    add_subdirectory(
+        "${positionbaseddynamics_SOURCE_DIR}"
+        "${positionbaseddynamics_BINARY_DIR}"
+    )
 endif()
 
 if(BUILD_TESTING)
