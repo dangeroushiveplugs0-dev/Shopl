@@ -37,7 +37,7 @@ int main() {
     CHECK(unit.contains({1.0, 1.0, 1.0}));
     CHECK(unit.contains({0.5, 0.5, 0.5}));
     CHECK(!unit.contains({1.1, 0.5, 0.5}));
-    CHECK(!unit.contains({0.5, 0.5, 0.5 + 1.0e-9}));
+    CHECK(!unit.contains({0.5, 0.5, 1.0 + 1.0e-9}));
     CHECK(!unit.contains({std::numeric_limits<double>::quiet_NaN(), 0.5, 0.5}));
 
     return 0;
