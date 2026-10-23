@@ -31,6 +31,10 @@ Shopl is building a **Shopl-owned C++ physics core**. Established projects such 
 5. Add controlled pressure/volume behavior and shape-aware contact tests.
 6. Add visualization after the solver tests are repeatable.
 
+## Browser preview
+
+**[Open Shopl Physics Lab](https://dangeroushiveplugs0-dev.github.io/Shopl/)** — an early interactive browser prototype with gravity and constraint-chain controls. The current page is a standalone JavaScript visualization, **not connected to the C++ engine**. Its output must not be treated as evidence of engine correctness. The automated C++ checks run separately in [GitHub Actions](https://github.com/dangeroushiveplugs0-dev/Shopl/actions).
+
 ## Status
 
-Early core-development stage. Gravity integration and basic simulation bookkeeping exist; a complete soft-body solver, mesh collision system, pressure-driven bulging, and visual demo are **not** yet implemented.
+Early core-development stage. Gravity integration, basic simulation bookkeeping, distance constraints, a batch solver, fixed-step orchestration, and numerical regression tests exist. A complete soft-body solver, accelerated mesh collision system, pressure-driven bulging, and a browser viewer driven by real C++ simulation output are **not** yet implemented.
