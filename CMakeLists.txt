@@ -50,6 +50,24 @@ if(SHOPL_BUILD_POSITION_BASED_DYNAMICS)
     )
 endif()
 
+if(SHOPL_BUILD_POSITION_BASED_DYNAMICS)
+    add_library(shopl_pbd_adapter
+        src/shopl_pbd_adapter/PbdModelAdapter.cpp
+    )
+    target_include_directories(shopl_pbd_adapter
+        PUBLIC
+            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    )
+    target_compile_features(shopl_pbd_adapter PUBLIC cxx_std_17)
+    target_link_libraries(shopl_pbd_adapter PUBLIC shopl_core Simulation)
+
+    if(MSVC)
+        target_compile_options(shopl_pbd_adapter PRIVATE /W4 /permissive-)
+    else()
+        target_compile_options(shopl_pbd_adapter PRIVATE -Wall -Wextra -Wpedantic)
+    endif()
+endif()
+
 if(BUILD_TESTING)
     add_executable(shopl_core_tests
         tests/test_simulation_state.cpp
@@ -64,4 +82,13 @@ if(BUILD_TESTING)
     target_link_libraries(shopl_gravity_tests PRIVATE shopl_core)
     target_compile_features(shopl_gravity_tests PRIVATE cxx_std_17)
     add_test(NAME shopl_gravity_tests COMMAND shopl_gravity_tests)
+
+    if(SHOPL_BUILD_POSITION_BASED_DYNAMICS)
+        add_executable(shopl_pbd_adapter_tests
+            tests/test_pbd_model_adapter.cpp
+        )
+        target_link_libraries(shopl_pbd_adapter_tests PRIVATE shopl_pbd_adapter)
+        target_compile_features(shopl_pbd_adapter_tests PRIVATE cxx_std_17)
+        add_test(NAME shopl_pbd_adapter_tests COMMAND shopl_pbd_adapter_tests)
+    endif()
 endif()
