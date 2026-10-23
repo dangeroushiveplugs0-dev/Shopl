@@ -33,7 +33,36 @@ google-services.json
 
 # Android Profiling
 *.hprof
-# Extra C# clutter
-.vs/
-*.suo
+# ====================================================================
+# Custom Multi-Language Additions (C++, C#, Python, HLSL/GLSL)
+# ====================================================================
 
+# --- C# & .NET Environment ---
+.vs/
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.csproj.user
+bin/
+obj/
+
+# --- Python Tools & Scripts ---
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.venv/
+venv/
+ENV/
+
+# --- Shaders & Native C++ Caches ---
+# Blocks compiled shader caches and local desktop test binaries
+*.spv
+*.bytecode
+*.exe
+*.dll
+*.dylib
+.cxx/
+.externalNativeBuild/
