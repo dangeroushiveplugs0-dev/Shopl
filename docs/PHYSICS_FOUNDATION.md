@@ -9,14 +9,14 @@ We will not fetch, compile, link, or expose upstream PBD types in Shopl's public
 ## Current Shopl modules
 
 - `shopl_core`: vector, particle state (including inverse mass for pinned particles), simulation bookkeeping, and gravity integration.
-- `shopl_constraints`: first native distance constraint with bounded stiffness, inverse-mass weighting, and invalid/degenerate-state handling.
-- Headless tests cover deterministic regression cases.
+- `shopl_constraints`: distance constraints plus a deterministic ordered batch solver. Batch solving uses a working copy so invalid constraints do not partially mutate caller state.
+- Headless tests cover regression cases, invalid inputs, and repeatability.
 
 ## Planned modules
 
+- `shopl_stepper`: fixed-step orchestration, damping, stability limits, and deterministic stepping.
 - `shopl_collision`: spatial acceleration structures and mesh-aware narrow-phase queries; avoid unbounded brute-force pair checks.
 - `shopl_softbody`: deformable volume, constraint networks, volume preservation, and pressure-driven effects.
-- `shopl_stepper`: fixed-step orchestration, damping, stability limits, and deterministic stepping.
 - `shopl_viewer` (later): visual inspection and interactive parameters.
 - `tools/python` (later): repeatable scenarios, parameter sweeps, and analysis tools.
 
@@ -26,10 +26,11 @@ Keep modules small and replaceable. Public APIs use Shopl-owned types.
 
 1. Keep standalone core and regression tests green.
 2. Validate distance constraints: rest length, stiffness bounds, pinned particles, invalid indices/parameters, and degenerate pairs.
-3. Add fixed-step orchestration and deterministic multi-step tests.
-4. Add spatial acceleration and mesh collision tests before large-scale collision work.
-5. Measure deformable-volume drift, finite positions, and repeatability.
-6. Add pressure-driven volume behavior only after the baseline is stable.
-7. Keep contact, indentation, and actual penetration/topology as separate concerns.
+3. Validate multi-constraint convergence, deterministic ordering, iteration limits, and no partial mutation on failure.
+4. Add fixed-step orchestration and deterministic multi-step tests.
+5. Add spatial acceleration and mesh collision tests before large-scale collision work.
+6. Measure deformable-volume drift, finite positions, and repeatability.
+7. Add pressure-driven volume behavior only after the baseline is stable.
+8. Keep contact, indentation, and actual penetration/topology as separate concerns.
 
 PBD and other reputable sources are references for algorithms and expected properties, not drop-in dependencies. Every technique must earn its place through tests and measurable benefits. Internal-pressure bulging and shape-aware contact remain planned behaviors documented in `BULGE_BEHAVIOR.md`.

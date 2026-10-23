@@ -27,7 +27,7 @@ jobs:
 
       - name: Build Shopl core and tests
         run: |
-          cmake --build build --target shopl_core_tests shopl_gravity_tests shopl_constraint_tests --parallel 2
+          cmake --build build --target shopl_core_tests shopl_gravity_tests shopl_constraint_tests shopl_constraint_solver_tests --parallel 2
 
       - name: Run tests
         run: ctest --test-dir build --output-on-failure
